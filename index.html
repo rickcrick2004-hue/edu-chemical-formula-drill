@@ -122,6 +122,28 @@
             cursor: pointer;
         }
 
+        /* --- ラウンドクリア表示 --- */
+        #round-clear-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 8vw;
+            font-weight: 900;
+            color: #ef4444;
+            text-shadow: 3px 3px 0 #fff, -3px -3px 0 #fff, 3px -3px 0 #fff, -3px 3px 0 #fff, 5px 5px 15px rgba(0,0,0,0.3);
+            z-index: 150;
+            pointer-events: none;
+            opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+            text-align: center;
+        }
+
+        #round-clear-display.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
         /* コンボ表示 */
         #combo-display {
             position: absolute;
@@ -308,6 +330,7 @@
         </div>
         
         <div id="combo-display">2 COMBO!</div>
+        <div id="round-clear-display">1周目クリア！</div>
 
         <div id="board">
             <!-- スロット12個を固定配置 -->
@@ -366,6 +389,7 @@
     let score = 0;
     let combo = 0;
     let clearedPairsSinceLastRefill = 0; // 補充後に消したペアの数（3になったら補充）
+    let roundCount = 1; // 現在の周回数
     
     let remainingPairs = []; // まだ場に出ていないペアのリスト
     let boardSlots = new Array(12).fill(null); // 盤面12マスの状態 (カードオブジェクトが入る。空はnull)
@@ -380,6 +404,7 @@
     const timeDisplay = document.getElementById('time-display');
     const scoreDisplay = document.getElementById('score-display');
     const comboDisplay = document.getElementById('combo-display');
+    const roundClearDisplay = document.getElementById('round-clear-display');
     
     const resultStamp = document.getElementById('result-stamp');
     const resultScore = document.getElementById('result-score');
@@ -402,11 +427,13 @@
         combo = 0;
         timeElapsed = 0;
         clearedPairsSinceLastRefill = 0;
+        roundCount = 1;
         firstSelectedCard = null;
         isProcessing = false;
         
         scoreDisplay.innerText = score;
         comboDisplay.classList.remove('show');
+        roundClearDisplay.classList.remove('show');
         
         // モード別の時間設定
         if (mode === '1min') {
@@ -420,6 +447,19 @@
             document.querySelector('.time-box').innerHTML = '経過: <span id="time-display">0:00</span>';
         }
 
+        initRound();
+
+        // 画面切り替え
+        homeScreen.style.display = 'none';
+        resultScreen.style.display = 'none';
+        gameScreen.style.display = 'flex';
+
+        // タイマースタート
+        clearInterval(timerInterval);
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function initRound() {
         // データの準備（19ペアをシャッフル）
         remainingPairs = shuffleArray(masterSubstances);
         boardSlots = new Array(12).fill(null);
@@ -443,15 +483,6 @@
             boardSlots[i] = initialCards[i];
             createCardElement(initialCards[i], i);
         }
-
-        // 画面切り替え
-        homeScreen.style.display = 'none';
-        resultScreen.style.display = 'none';
-        gameScreen.style.display = 'flex';
-
-        // タイマースタート
-        clearInterval(timerInterval);
-        timerInterval = setInterval(updateTimer, 1000);
     }
 
     // カード要素の作成と配置
@@ -543,10 +574,26 @@
             if (card1.parentNode) card1.parentNode.innerHTML = '';
             if (card2.parentNode) card2.parentNode.innerHTML = '';
 
-            // パーフェクト達成（全19ペア完了）
-            if (score === 19) {
-                endGame(true);
-                return;
+            // 全19ペア完了（1周クリア）判定
+            // scoreは累積なので、19の倍数になった時に周回クリアとみなす
+            if (score > 0 && score % 19 === 0) {
+                isProcessing = true; // 演出中のタップ防止
+                
+                // 「○周目クリア！」の表示
+                roundClearDisplay.innerText = `${roundCount}周目クリア！`;
+                roundClearDisplay.classList.remove('show');
+                void roundClearDisplay.offsetWidth; // リフロー強制
+                roundClearDisplay.classList.add('show');
+                
+                setTimeout(() => {
+                    roundClearDisplay.classList.remove('show');
+                    roundCount++;
+                    clearedPairsSinceLastRefill = 0;
+                    initRound(); // 盤面を次の周用にリセット
+                    firstSelectedCard = null;
+                    isProcessing = false;
+                }, 1500); // メッセージを1.5秒表示してから次へ
+                return; // ここで一旦終了（通常の補充処理は行わない）
             }
 
             // ★【まとめ補充システム】3ペア（6枚）消えたら、まとめて補充する
@@ -632,6 +679,7 @@
 
     // ゲーム終了・結果表示
     function endGame(isPerfect) {
+        // ※この引数 isPerfect は今回は使用しません（周回制のため）
         clearInterval(timerInterval);
         gameScreen.style.display = 'none';
         resultScreen.style.display = 'flex';
@@ -644,13 +692,18 @@
         const sec = timeElapsed % 60;
         const timeString = min > 0 ? `${min}分${sec}秒` : `${sec}秒`;
 
-        // 背景色とスタンプの演出（前から見て一目でわかるように）
-        if (score === 19) {
+        // 背景色とスタンプの演出（トータル獲得数で判定）
+        if (score >= 38) { // 2周以上
+             resultScreen.style.background = 'linear-gradient(135deg, #ef4444, #f59e0b)';
+             resultStamp.innerText = 'GOD!!';
+             resultTime.style.display = 'block';
+             resultTime.innerText = `タイム: ${timeString}`;
+        } else if (score >= 19) { // 1周以上
             // パーフェクト（赤色ベースのド派手な背景）
             resultScreen.style.background = 'linear-gradient(135deg, #ef4444, #f59e0b)';
             resultStamp.innerText = 'PERFECT!!';
             resultTime.style.display = 'block';
-            resultTime.innerText = `クリアタイム: ${timeString}`;
+            resultTime.innerText = `タイム: ${timeString}`;
         } else if (score >= 15) {
             // 優秀（黄色/オレンジベース）
             resultScreen.style.background = 'linear-gradient(135deg, #f59e0b, #fbbf24)';
