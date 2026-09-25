@@ -693,7 +693,12 @@
         const timeString = min > 0 ? `${min}分${sec}秒` : `${sec}秒`;
 
         // 背景色とスタンプの演出（トータル獲得数で判定）
-        if (score >= 120) { // 異次元レベル
+        if (score >= 140) { // 究極レベル
+            resultScreen.style.background = 'linear-gradient(135deg, #020617, #312e81, #9d174d)'; // 宇宙のようなギャラクシーカラー
+            resultStamp.innerText = 'ULTIMATE!!';
+            resultTime.style.display = 'block';
+            resultTime.innerText = `タイム: ${timeString}`;
+        } else if (score >= 120) { // 異次元レベル
             resultScreen.style.background = 'linear-gradient(135deg, #111827, #f59e0b, #111827)'; // 黒と金の王者の色
             resultStamp.innerText = 'LEGEND!!';
             resultTime.style.display = 'block';
