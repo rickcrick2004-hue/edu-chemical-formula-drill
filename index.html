@@ -693,14 +693,34 @@
         const timeString = min > 0 ? `${min}分${sec}秒` : `${sec}秒`;
 
         // 背景色とスタンプの演出（トータル獲得数で判定）
-        if (score >= 38) { // 2周以上
-             resultScreen.style.background = 'linear-gradient(135deg, #ef4444, #f59e0b)';
+        if (score >= 120) { // 異次元レベル
+            resultScreen.style.background = 'linear-gradient(135deg, #111827, #f59e0b, #111827)'; // 黒と金の王者の色
+            resultStamp.innerText = 'LEGEND!!';
+            resultTime.style.display = 'block';
+            resultTime.innerText = `タイム: ${timeString}`;
+        } else if (score >= 100) { // 超一流レベル
+            resultScreen.style.background = 'linear-gradient(135deg, #7e22ce, #db2777)'; // 紫とピンクのサイバー系
+            resultStamp.innerText = 'GENIUS!!';
+            resultTime.style.display = 'block';
+            resultTime.innerText = `タイム: ${timeString}`;
+        } else if (score >= 80) { // 凄腕レベル
+            resultScreen.style.background = 'linear-gradient(135deg, #4338ca, #06b6d4)'; // インディゴとシアンのクール系
+            resultStamp.innerText = 'FANTASTIC!!';
+            resultTime.style.display = 'block';
+            resultTime.innerText = `タイム: ${timeString}`;
+        } else if (score >= 60) { // 達人レベル
+            resultScreen.style.background = 'linear-gradient(135deg, #be123c, #fbbf24)'; // 深紅と黄色
+            resultStamp.innerText = 'UNBELIEVABLE!';
+            resultTime.style.display = 'block';
+            resultTime.innerText = `タイム: ${timeString}`;
+        } else if (score >= 38) { // 2周以上
+             resultScreen.style.background = 'linear-gradient(135deg, #ef4444, #f97316)'; // 赤・濃いオレンジ
              resultStamp.innerText = 'GOD!!';
              resultTime.style.display = 'block';
              resultTime.innerText = `タイム: ${timeString}`;
         } else if (score >= 19) { // 1周以上
-            // パーフェクト（赤色ベースのド派手な背景）
-            resultScreen.style.background = 'linear-gradient(135deg, #ef4444, #f59e0b)';
+            // パーフェクト
+            resultScreen.style.background = 'linear-gradient(135deg, #f43f5e, #fb923c)'; // ローズ・オレンジ
             resultStamp.innerText = 'PERFECT!!';
             resultTime.style.display = 'block';
             resultTime.innerText = `タイム: ${timeString}`;
