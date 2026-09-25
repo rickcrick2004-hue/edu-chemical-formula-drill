@@ -246,6 +246,39 @@
             border-color: #ef4444 !important;
         }
 
+        /* --- カウントダウン表示 --- */
+        #countdown-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 300;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #countdown-text {
+            font-size: 25vw;
+            font-weight: 900;
+            color: white;
+            text-shadow: 4px 4px 15px rgba(0,0,0,0.5);
+            opacity: 0; /* アニメーション前は非表示 */
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            40% { transform: scale(1.1); opacity: 1; }
+            60% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .pop {
+            animation: popIn 1s ease-out;
+        }
+
         /* --- 結果画面（iPadを掲げる用） --- */
         #result-screen {
             display: none;
@@ -357,6 +390,11 @@
         <button id="result-home-btn" onclick="goHome()">ホーム画面に戻る</button>
     </div>
 
+    <!-- カウントダウン画面 -->
+    <div id="countdown-overlay">
+        <div id="countdown-text">3</div>
+    </div>
+
 <script>
     // 物質データ（全19種）
     const masterSubstances = [
@@ -383,6 +421,7 @@
 
     let currentMode = '';
     let timerInterval = null;
+    let countdownTimeout = null; // カウントダウン用タイマー
     let timeRemaining = 0; // 制限時間モード用
     let timeElapsed = 0;   // エンドレス・クリアタイム計測用
     
@@ -429,7 +468,7 @@
         clearedPairsSinceLastRefill = 0;
         roundCount = 1;
         firstSelectedCard = null;
-        isProcessing = false;
+        isProcessing = true; // カウントダウン中はタップ不可
         
         scoreDisplay.innerText = score;
         comboDisplay.classList.remove('show');
@@ -454,9 +493,49 @@
         resultScreen.style.display = 'none';
         gameScreen.style.display = 'flex';
 
-        // タイマースタート
-        clearInterval(timerInterval);
-        timerInterval = setInterval(updateTimer, 1000);
+        // カウントダウン開始
+        startCountdown();
+    }
+
+    function startCountdown() {
+        const overlay = document.getElementById('countdown-overlay');
+        const textEl = document.getElementById('countdown-text');
+        overlay.style.display = 'flex';
+        
+        let count = 3;
+        
+        function tick() {
+            if (count > 0) {
+                textEl.innerText = count;
+                // アニメーションを再トリガーするためのリセット
+                textEl.classList.remove('pop');
+                void textEl.offsetWidth; // リフロー強制
+                textEl.classList.add('pop');
+                
+                countdownTimeout = setTimeout(() => {
+                    count--;
+                    tick();
+                }, 1000);
+            } else if (count === 0) {
+                textEl.innerText = 'START!';
+                textEl.style.color = '#fbbf24'; // スタート時は黄色っぽく目立たせる
+                textEl.classList.remove('pop');
+                void textEl.offsetWidth;
+                textEl.classList.add('pop');
+                
+                countdownTimeout = setTimeout(() => {
+                    overlay.style.display = 'none';
+                    isProcessing = false; // タップ解禁
+                    textEl.style.color = 'white'; // 色を戻しておく
+                    
+                    // タイマースタート
+                    clearInterval(timerInterval);
+                    timerInterval = setInterval(updateTimer, 1000);
+                }, 1000);
+            }
+        }
+        
+        tick();
     }
 
     function initRound() {
@@ -750,6 +829,8 @@
     // ホームに戻る
     function goHome() {
         clearInterval(timerInterval);
+        clearTimeout(countdownTimeout);
+        document.getElementById('countdown-overlay').style.display = 'none';
         resultScreen.style.display = 'none';
         gameScreen.style.display = 'none';
         homeScreen.style.display = 'flex';
