@@ -340,6 +340,79 @@
         sub {
             font-size: 0.65em;
         }
+
+        /* --- 学習画面 --- */
+        #study-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            background-color: var(--bg-color);
+            padding: 20px;
+            overflow-y: auto; /* 一覧が長い場合はスクロール可能に */
+        }
+
+        #study-screen h2 {
+            font-size: 5vw;
+            color: #1e3a8a;
+            margin-bottom: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .study-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 1000px;
+            margin-bottom: 40px;
+        }
+
+        .study-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            font-size: 26px;
+            font-weight: bold;
+        }
+
+        .study-name {
+            color: #0369a1;
+            background-color: var(--name-bg);
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 2px solid var(--name-border);
+        }
+
+        .study-formula {
+            color: #166534;
+            background-color: var(--formula-bg);
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 2px solid var(--formula-border);
+        }
+
+        .study-home-btn {
+            padding: 15px 40px;
+            font-size: 3vw;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            background-color: #9ca3af;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+            width: 60%;
+            max-width: 400px;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
@@ -350,6 +423,16 @@
         <button class="mode-btn" onclick="startGame('1min')">1分モード</button>
         <button class="mode-btn" onclick="startGame('3min')">3分モード</button>
         <button class="mode-btn endless" onclick="startGame('endless')">時間制限なしモード</button>
+        <button class="mode-btn" style="background-color: #10b981; margin-top: 40px;" onclick="openStudyScreen()">📖 学習する（一覧表）</button>
+    </div>
+
+    <!-- 学習画面 -->
+    <div id="study-screen">
+        <h2>化学式 一覧表</h2>
+        <div class="study-list" id="study-list">
+            <!-- JSで動的に生成されます -->
+        </div>
+        <button class="study-home-btn" onclick="closeStudyScreen()">ホームに戻る</button>
     </div>
 
     <!-- ゲーム画面 -->
@@ -833,6 +916,32 @@
         document.getElementById('countdown-overlay').style.display = 'none';
         resultScreen.style.display = 'none';
         gameScreen.style.display = 'none';
+        homeScreen.style.display = 'flex';
+    }
+
+    // 学習画面を開く
+    function openStudyScreen() {
+        homeScreen.style.display = 'none';
+        document.getElementById('study-screen').style.display = 'flex';
+        
+        // 一覧表がまだ生成されていなければ生成する
+        const studyList = document.getElementById('study-list');
+        if (studyList.children.length === 0) {
+            masterSubstances.forEach(sub => {
+                const item = document.createElement('div');
+                item.className = 'study-item';
+                item.innerHTML = `
+                    <div class="study-name">${sub.name}</div>
+                    <div class="study-formula">${sub.formula}</div>
+                `;
+                studyList.appendChild(item);
+            });
+        }
+    }
+
+    // 学習画面からホームに戻る
+    function closeStudyScreen() {
+        document.getElementById('study-screen').style.display = 'none';
         homeScreen.style.display = 'flex';
     }
 </script>
