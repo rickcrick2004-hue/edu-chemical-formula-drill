@@ -28,7 +28,7 @@
             padding: 0;
             background-color: var(--bg-color);
             color: #1f2937;
-            overflow: hidden; /* スクロール防止 */
+            /* overflow: hidden; を削除し、ページ全体をスクロール可能にします */
             touch-action: manipulation;
         }
 
@@ -38,9 +38,11 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh; /* height から min-height に変更し、見切れを防ぎます */
             width: 100vw;
             background: linear-gradient(135deg, #e0f2fe, #dcfce7);
+            overflow-y: auto; /* はみ出した場合にスクロール可能に */
+            padding: 40px 0; /* 上下に余白を設定 */
         }
 
         h1 {
@@ -82,6 +84,7 @@
             flex-direction: column;
             height: 100vh;
             width: 100vw;
+            overflow: hidden; /* ゲーム中だけはスクロールを防止します */
         }
 
         /* ヘッダー */
@@ -346,7 +349,7 @@
             display: none;
             flex-direction: column;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh; /* height から min-height に変更 */
             width: 100vw;
             background-color: var(--bg-color);
             padding: 20px;
@@ -412,6 +415,40 @@
             width: 60%;
             max-width: 400px;
             flex-shrink: 0;
+        }
+
+        /* --- スマホ向けレイアウト自動調整（レスポンシブ） --- */
+        @media (max-width: 768px) {
+            #board {
+                grid-template-columns: repeat(3, 1fr); /* スマホ画面では横3列に */
+                grid-template-rows: repeat(4, 1fr); /* 縦4段に変更 */
+                gap: 10px;
+                padding: 10px;
+            }
+            .card {
+                font-size: 2.5vh; /* スマホに合わせて文字サイズを調整 */
+            }
+            h1 {
+                font-size: 10vw;
+            }
+            .mode-btn {
+                font-size: 5vw;
+                padding: 15px 30px;
+                width: 80%;
+            }
+            .study-home-btn {
+                font-size: 5vw;
+                width: 80%;
+            }
+            #header {
+                height: auto;
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px;
+            }
+            .stats {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
